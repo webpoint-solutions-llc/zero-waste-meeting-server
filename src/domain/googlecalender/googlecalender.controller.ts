@@ -40,7 +40,7 @@ export class GooglecalenderController {
     summary: 'Get Google Calendar Events',
     responseType: CalendarEventDto,
   })
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   async getMonthlyEventList(@Req() req: any): Promise<any> {
     const user = req.user as any;
     const userData = await this.userService.findoneByid(user.id);
@@ -53,14 +53,19 @@ export class GooglecalenderController {
     ) {
       throw new Error('No Google access token found for the user.');
     }
-    const accessToken = await this.authService.getgoogleAccessToken(userData);
-    return await this.googlecalenderService.getTeamMeetingWiseData(accessToken);
+    let accessToken = await this.authService.getgoogleAccessToken(userData);
+    // //if accesstoken not found 
+    // // if (!accessToken) {
+    // let  accessToken = process.env.GOOGLE_AUTH_TOKEN
+    
+    return await this.googlecalenderService.generateMonthlyReport(accessToken);
   }
   @Get('/dailyreport')
   @UniversalDecorator({
     summary: 'Get Google Calendar Events',
     responseType: CalendarEventDto,
   })
+
   @UseGuards(JwtAuthGuard)
   async getDailyEventList(@Req() req: any): Promise<any> {
     const user = req.user as any;
@@ -75,5 +80,51 @@ export class GooglecalenderController {
       throw new Error('No Google access token found for the user.');
     }
     const accessToken = await this.authService.getgoogleAccessToken(userData);
+    return await this.googlecalenderService.generateDailyReport(accessToken);
   }
+
+  @Get('/weeklyreport')
+  @UniversalDecorator({
+    summary: 'Get Google Calendar Events',
+    responseType: CalendarEventDto,
+  })
+  @UseGuards(JwtAuthGuard)
+  async getWeeklyEventList(@Req() req: any): Promise<any> {
+    const user = req.user as any;
+    const userData = await this.userService.findoneByid(user.id);
+    if (!userData) {
+      throw new Error('User not found.');
+    }
+    if (
+      !userData ||
+      !userData.googleAccessToken
+    ) {
+      throw new Error('No Google access token found for the user.');
+    }
+    const accessToken = await this.authService.getgoogleAccessToken(userData);
+    return await this.googlecalenderService.generateWeeklyReport(accessToken);
+  }
+
+  @Get("/productivehourmetting")
+  @UniversalDecorator({
+    summary: 'Get Google Calendar Events',
+    responseType: CalendarEventDto,
+  })
+  @UseGuards(JwtAuthGuard)
+  async getProductiveHourMetting(@Req() req: any): Promise<any> {
+    const user = req.user as any;
+    const userData = await this.userService.findoneByid(user.id);
+    if (!userData) {
+      throw new Error('User not found.');
+    }
+    if (
+      !userData ||
+      !userData.googleAccessToken
+    ) {
+      throw new Error('No Google access token found for the user.');
+    }
+    const accessToken = await this.authService.getgoogleAccessToken(userData);
+    return await this.googlecalenderService.getMeetingsInProductiveHoursToday(accessToken);
+  }
+  //get teem meeting wise data
 }
