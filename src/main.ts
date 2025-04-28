@@ -17,6 +17,7 @@ async function bootstrap() {
   
   app.setGlobalPrefix("/api/v1");
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.enableCors();
   const config = new DocumentBuilder() 
     .setTitle('Google Calender API')
     .setDescription('The Calender Service Api documentation')

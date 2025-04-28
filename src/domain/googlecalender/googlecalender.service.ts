@@ -161,4 +161,39 @@ export class GooglecalenderService {
       totalHours: (totalMinutes / 60).toFixed(2),
     };
   }
+  // Check focus hours every hour from 9 to 6 pm - meeting data for every hour - meeting hours 
+  async getFocusHours(accessToken: string) {
+    const events = await this.fetchEvents(accessToken, 'daily');
+    const focusHours = [];
+
+    for (let hour = 9; hour <= 18; hour++) {
+      const startOfHour = new Date();
+      startOfHour.setHours(hour, 0, 0, 0);
+      const endOfHour = new Date();
+      endOfHour.setHours(hour + 1, 0, 0, 0);
+
+      const meetingsInHour = events.filter((event) => {
+        const start = event.start.dateTime || event.start.date;
+        const end = event.end.dateTime || event.end.date;
+        return (
+          (new Date(start) >= startOfHour && new Date(start) < endOfHour) ||
+          (new Date(end) > startOfHour && new Date(end) <= endOfHour)
+        );
+      });
+
+      const totalMinutes = meetingsInHour.reduce((sum, event) => {
+        const start = event.start.dateTime || event.start.date;
+        const end = event.end.dateTime || event.end.date;
+        return sum + calculateMinutes(start, end);
+      }, 0);
+
+      focusHours.push({
+        hour,
+        totalMeetings: meetingsInHour.length,
+        focustime: totalMinutes > 0 ? (totalMinutes / 60).toFixed(2) : 1,
+      });
+    }
+
+    return focusHours;
+  }
 }

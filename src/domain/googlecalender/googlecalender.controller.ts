@@ -127,4 +127,56 @@ export class GooglecalenderController {
     return await this.googlecalenderService.getMeetingsInProductiveHoursToday(accessToken);
   }
   //get teem meeting wise data
+  @Get("/teemmeeting")
+  @UniversalDecorator({
+    summary: 'Get Google Calendar Events',
+    responseType: CalendarEventDto,
+  })
+  @UseGuards(JwtAuthGuard)
+  async getTeemMeeting(@Req() req: any): Promise<any> {
+    const user = req.user as any;
+    const userData = await this.userService.findoneByid(user.id);
+    if (!userData) {
+      throw new Error('User not found.');
+    }
+    if (
+
+      !userData ||
+      !userData.googleAccessToken
+    ) {
+      throw new Error('No Google access token found for the user.');
+    }
+    const accessToken = await this.authService.getgoogleAccessToken(userData);
+    return await this.googlecalenderService.getTeamMeetingWiseData(accessToken);
+  }
+  //get focused hours
+  @Get("/focushours")
+  @UniversalDecorator({
+    summary: 'Get Google Calendar Events',
+    responseType: CalendarEventDto,
+  })
+  @UseGuards(JwtAuthGuard)
+  async getFocusHours(@Req() req: any): Promise<any> {
+    const user = req.user as any;
+    const userData = await this.userService.findoneByid(user.id);
+    if (!userData) {
+      throw new Error('User not found.');
+    }
+    if (
+      !userData ||
+      !userData.googleAccessToken
+    ) {
+      throw new Error('No Google access token found for the user.');
+    }
+    const accessToken = await this.authService.getgoogleAccessToken(userData);
+    return await this.googlecalenderService.getFocusHours(accessToken);
+  }
+
+
+
+
+
+
+
+
 }
