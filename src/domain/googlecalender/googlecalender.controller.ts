@@ -56,4 +56,24 @@ export class GooglecalenderController {
     const accessToken = await this.authService.getgoogleAccessToken(userData);
     return await this.googlecalenderService.getTeamMeetingWiseData(accessToken);
   }
+  @Get('/dailyreport')
+  @UniversalDecorator({
+    summary: 'Get Google Calendar Events',
+    responseType: CalendarEventDto,
+  })
+  @UseGuards(JwtAuthGuard)
+  async getDailyEventList(@Req() req: any): Promise<any> {
+    const user = req.user as any;
+    const userData = await this.userService.findoneByid(user.id);
+    if (!userData) {
+      throw new Error('User not found.');
+    }
+    if (
+      !userData ||
+      !userData.googleAccessToken
+    ) {
+      throw new Error('No Google access token found for the user.');
+    }
+    const accessToken = await this.authService.getgoogleAccessToken(userData);
+  }
 }
