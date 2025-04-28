@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       Int                 @id @default(autoincrement())
+  name                     String
+  email                    String              @unique
+  password                 String
+  twoFaSecret              String?
+  enable2fa                Boolean             @default(false)
+  createdAt                DateTime            @default(now())
+  passwordChangedAt        DateTime?
+  passwordResetToken       String?
+  passwordResetTokenExpire DateTime?
+  AuthorizationCode        AuthorizationCode[]
+  googleAccessToken        String?
+  googleRefreshToken       String?
+  googleTokenExpiresAt     DateTime?
+  Role                     Role?               @relation(fields: [roleId], references: [id])
+  roleId                   Int?
+  meetings                 Meeting[]
+}
+
+model AuthorizationCode {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  name        roles            @unique @default(USER)
+  users       User[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+}
+
+enum roles {
+  ADMIN
+  USER
+}
+
+model Permission {
+  id        Int              @id @default(autoincrement())
+  name      String           @unique
+  roles     RolePermission[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId Int
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model Meeting {
+  id        String          @id @default(uuid())
+  userId    Int
+  summary   String
+  startTime DateTime
+  endTime   DateTime
+  createdAt DateTime        @default(now())
+  actions   MeetingAction[]
+  user      User            @relation(fields: [userId], references: [id])
+}
+
+model MeetingAction {
+  id        String   @id @default(uuid())
+  meetingId String
+  userId    String
+  accepted  Boolean
+  note      String?
+  timeSaved Float?
+  createdAt DateTime @default(now())
+  Meeting   Meeting  @relation(fields: [meetingId], references: [id])
+}
